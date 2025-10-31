@@ -105,6 +105,8 @@ class PickupTask:
             "go to navigation mode", self.agent, retry_on_failure=True
         )
 
+        rotate_in_place = None
+
         if add_rotate:
             # Spin in place to find objects.
             rotate_in_place = RotateInPlaceOperation(
@@ -129,7 +131,9 @@ class PickupTask:
         )
 
         # Set objects to search for
+        assert self.target_object is not None
         search_for_object.set_target_object_class(self.target_object)
+        assert self.target_receptacle is not None
         search_for_receptacle.set_target_object_class(self.target_receptacle)
 
         # After searching for object, we should go to an instance that we've found. If we cannot do that, keep searching.
@@ -161,7 +165,7 @@ class PickupTask:
         )
         # If we cannot start, we should go back to the search_for_object operation.
         # To determine if we can start, we look at the end effector camera and see if there's anything detectable.
-        grasp_object: Operation = None
+        grasp_object: Optional[Operation] = None
         if self.use_visual_servoing_for_grasp:
             grasp_object = GraspObjectOperation(
                 name=f"grasp_the_{self.target_object}",
@@ -171,6 +175,7 @@ class PickupTask:
                 on_cannot_start=go_to_object,
                 retry_on_failure=False,
             )
+            assert self.agent.target_object is not None
             grasp_object.set_target_object_class(self.agent.target_object)
             grasp_object.servo_to_grasp = True
             grasp_object.match_method = matching
@@ -183,6 +188,7 @@ class PickupTask:
                 on_cannot_start=go_to_object,
                 retry_on_failure=False,
             )
+            assert self.agent.target_object is not None
             grasp_object.set_target_object_class(self.agent.target_object)
             grasp_object.match_method = matching
 
@@ -208,6 +214,7 @@ class PickupTask:
         if not add_rotate:
             task.connect_on_success(go_to_navigation_mode.name, search_for_receptacle.name)
         else:
+            assert rotate_in_place is not None
             task.connect_on_success(go_to_navigation_mode.name, rotate_in_place.name)
             task.connect_on_success(rotate_in_place.name, search_for_receptacle.name)
         task.connect_on_success(search_for_receptacle.name, search_for_object.name)

@@ -1,24 +1,15 @@
-# Copyright (c) Hello Robot, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the LICENSE file in the root directory
-# of this source tree.
-#
-# Some code may be adapted from other open-source works with their respective licenses. Original
-# license information maybe found below, if so.
-
 import base64
 from io import BytesIO
 from typing import Any, Dict, Optional, Union
 
 import numpy as np
-from openai import OpenAI
+from openai import AzureOpenAI
 from PIL import Image
 
 from stretch.llms.base import AbstractLLMClient, AbstractPromptBuilder
 
 
-class OpenaiClient(AbstractLLMClient):
+class AzureOpenaiClient(AbstractLLMClient):
     """Simple client for creating agents using an OpenAI API call.
 
     Parameters:
@@ -27,13 +18,13 @@ class OpenaiClient(AbstractLLMClient):
     TODO: add the support for audio input
     """
 
-    model_choices = ["gpt-4o", "gpt-4o-mini", "chatgpt-4o-latest"]
+    model_choices = ["gpt-4.1"]
 
     def __init__(
         self,
         prompt: Union[str, AbstractPromptBuilder],
         prompt_kwargs: Optional[Dict[str, Any]] = None,
-        model: str = "gpt-4o",
+        model: str = "gpt-4.1",
     ):
         super().__init__(prompt, prompt_kwargs)
         self.model = model
@@ -42,7 +33,7 @@ class OpenaiClient(AbstractLLMClient):
             print("Below are some recommended GPT models:")
             for model_choice in self.model_choices:
                 print(model_choice)
-        self._openai = OpenAI()
+        self._azure_openai = AzureOpenAI(azure_deployment=self.model)
 
     def _process_input(self, command, verbose=False):
         """
@@ -53,7 +44,7 @@ class OpenaiClient(AbstractLLMClient):
         if isinstance(command, str):
             user_commands = command
         else:
-            user_commands = []  # type:ignore
+            user_commands = []
             for c in command:
                 # If this is a dict, then we assume it has already been formtted in the form of {"type": ""}
                 if isinstance(c, dict):
@@ -103,7 +94,7 @@ class OpenaiClient(AbstractLLMClient):
 
         command = self._process_input(command, verbose=verbose)
 
-        completion = self._openai.chat.completions.create(
+        completion = self._azure_openai.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": self.system_prompt},
@@ -121,7 +112,7 @@ class OpenaiClient(AbstractLLMClient):
 
         command = self._process_input(command, verbose=verbose)
 
-        completion = self._openai.chat.completions.create(
+        completion = self._azure_openai.chat.completions.create(
             model=self.model,
             temperature=1,
             messages=[
@@ -140,7 +131,7 @@ if __name__ == "__main__":
     from stretch.llms.prompts.ok_robot_prompt import OkRobotPromptBuilder
 
     prompt = OkRobotPromptBuilder(use_specific_objects=True)
-    client = OpenaiClient(prompt, model="gpt-4o")
+    client = AzureOpenaiClient(prompt, model="gpt-4.1")
     plan = client("this room is a mess, could you put away the dirty towel?", verbose=True)
     print("\n\n")
     print("OpenAI client returned this plan:", plan)

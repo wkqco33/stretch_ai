@@ -19,6 +19,7 @@ from threading import Lock, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from numpy.typing import NDArray
 import torch
 from PIL import Image
 
@@ -639,7 +640,8 @@ class RobotAgent:
 
     def update_map_with_pose_graph(self, verbose: bool = False):
         """Update our voxel map using a pose graph.
-        Updates the map from pose graph. This is useful for when we are processing real-time updates."""
+        Updates the map from pose graph. This is useful for when we are processing real-time updates.
+        """
 
         self._obs_history_lock.acquire()
         t0 = timeit.default_timer()
@@ -1918,7 +1920,7 @@ class RobotAgent:
             planner_visuals=True,
         )
 
-    def move_closed_loop(self, goal: np.ndarray, max_time: float = 10.0) -> bool:
+    def move_closed_loop(self, goal: NDArray, max_time: float = 10.0) -> bool:
         """Helper function which will move while also checking which position the robot reached.
 
         Args:

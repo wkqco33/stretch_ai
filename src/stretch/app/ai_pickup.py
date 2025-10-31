@@ -10,6 +10,7 @@
 # license information maybe found below, if so.
 
 import click
+import numpy as np
 
 # import stretch.utils.logger as logger
 from stretch.agent.robot_agent import RobotAgent
@@ -42,8 +43,8 @@ logger = Logger(__name__)
 )
 @click.option(
     "--llm",
-    default="qwen25-3B-Instruct",
-    help="Client to use for language model. Recommended: gemma, openai",
+    default="azure_openai",
+    help="Client to use for language model. Recommended: gemma, openai, azure_openai",
     type=click.Choice(get_llm_choices()),
 )
 @click.option(
@@ -128,7 +129,7 @@ def main(
     target_object: str = "",
     receptacle: str = "",
     match_method: str = "feature",
-    llm: str = "gemma",
+    llm: str = "azure_openai",
     use_llm: bool = False,
     use_voice: bool = False,
     open_loop: bool = False,
@@ -164,7 +165,7 @@ def main(
     agent.start(visualize_map_at_start=show_intermediate_maps)
     if reset:
         print("Reset: moving robot to origin")
-        agent.move_closed_loop([0, 0, 0], max_time=60.0)
+        agent.move_closed_loop(np.array([0, 0, 0]), max_time=60.0)
 
     if radius is not None and radius > 0:
         print("Setting allowed radius to:", radius)
@@ -191,6 +192,7 @@ def main(
 
     # Get the LLM client
     llm_client = None
+    chat_wrapper = None
     if use_llm:
         llm_client = get_llm_client(llm, prompt=prompt)
         chat_wrapper = LLMChatWrapper(llm_client, prompt=prompt, voice=use_voice)
@@ -210,6 +212,7 @@ def main(
             llm_response = [("pickup", target_object), ("place", receptacle)]
         else:
             # Call the LLM client and parse
+            assert chat_wrapper is not None
             llm_response = chat_wrapper.query(verbose=debug_llm)
             if debug_llm:
                 print("Parsed LLM Response:", llm_response)

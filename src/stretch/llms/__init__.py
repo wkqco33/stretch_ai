@@ -13,6 +13,7 @@ from .chat_wrapper import LLMChatWrapper
 from .gemma_client import GemmaClient
 from .llama_client import LlamaClient
 from .openai_client import OpenaiClient
+from .azure_openai_client import AzureOpenaiClient
 from .prompts.object_manip_nav_prompt import ObjectManipNavPromptBuilder
 from .prompts.ok_robot_prompt import OkRobotPromptBuilder
 from .prompts.pickup_prompt import PickupPromptBuilder
@@ -39,6 +40,7 @@ llms = {
     "gemma": GemmaClient,
     "llama": LlamaClient,
     "openai": OpenaiClient,
+    "azure_openai": AzureOpenaiClient,
     "qwen25": Qwen25Client,
 }
 
@@ -147,6 +149,8 @@ def get_llm_client(
         return LlamaClient(prompt, **kwargs)
     elif client_type == "openai":
         return OpenaiClient(prompt, **kwargs)
+    elif client_type == "azure_openai":
+        return AzureOpenaiClient(prompt, **kwargs)
     elif "qwen" in client_type:
         # Parse model size and fine-tuning from client_type
         model_size, typing_option, fine_tuning, quantization_option = process_incoming_qwen_types(

@@ -21,18 +21,18 @@ class AbstractPromptBuilder(ABC):
         print(kwargs)
         self.prompt_str = self.configure(**kwargs)
 
-    def configure(self, **kwargs) -> str:
+    def configure(self, **kwargs) -> Optional[str]:
         """Configure the prompt with the given parameters, then return the prompt string."""
 
     def __str__(self) -> str:
         """Return the system prompt string for an LLM."""
-        return self.prompt_str
+        return self.prompt_str if self.prompt_str is not None else ""
 
     def __call__(self, kwargs: Optional[Dict[str, Any]] = None) -> str:
         """Return the system prompt string for an LLM."""
         if kwargs is not None:
             self.prompt_str = self.configure(**kwargs)
-        return self.prompt_str
+        return self.prompt_str if self.prompt_str is not None else ""
 
     def parse_response(self, response: str) -> Any:
         """Parse the response from the LLM. Usually does nothing."""
@@ -103,7 +103,9 @@ class AbstractLLMClient(ABC):
         return history_str
 
     @abstractmethod
-    def __call__(self, command: str, image: Optional[Image.Image] = None, verbose: bool = False):
+    def __call__(
+        self, command: str, image: Optional[Image.Image] = None, verbose: bool = False
+    ) -> Optional[str]:
         """Interact with the language model to generate a plan."""
 
     def parse(self, content: str) -> List[Tuple[str, str]]:

@@ -79,6 +79,7 @@ class LLMChatWrapper:
         assistant_response = self.llm_client(input_text)
         t1 = timeit.default_timer()
 
+        assert assistant_response is not None
         response = self.prompt.parse_response(assistant_response)
 
         if verbose:
